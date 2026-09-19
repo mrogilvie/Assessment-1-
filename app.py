@@ -8,6 +8,7 @@ from typing import Any
 
 import chromadb
 import streamlit as st
+from dotenv import load_dotenv
 from openai import OpenAI
 from pypdf import PdfReader
 
@@ -16,6 +17,8 @@ ROOT = Path(__file__).parent
 DEFAULT_PDF = ROOT / "Clause-Notes-Residential-Parks-Bill-2026 copy.pdf"
 CHROMA_DIR = ROOT / ".chroma"
 COLLECTION_NAME = "residential-parks-bill"
+
+load_dotenv(ROOT / ".env")
 
 
 def get_openai_api_key() -> str | None:
@@ -40,9 +43,9 @@ def read_pdf(pdf_path: Path) -> tuple[list[str], list[dict[str, Any]]]:
     chunks: list[str] = []
     metadata: list[dict[str, Any]] = []
     for page_number, page in enumerate(reader.pages, start=1):
-        for chunk_number, chunk in enumerate(split_text(page.extract_text() or "")):
-            chunks.append(chunk)
-            metadata.append({"page": page_number, "chunk": chunk_number})
+        for paragraph_number, paragraph in enumerate(split_text(page.extract_text() or ""), start=1):
+            chunks.append(paragraph)
+            metadata.append({"page": page_number, "paragraph": paragraph_number})
     return chunks, metadata
 
 
@@ -71,7 +74,14 @@ def retrieve(collection: Any, question: str, count: int) -> list[dict[str, Any]]
     result = collection.query(query_texts=[question], n_results=min(count, available))
     documents = result.get("documents", [[]])[0]
     metadatas = result.get("metadatas", [[]])[0]
-    return [{"text": text, "page": metadata.get("page", "?")} for text, metadata in zip(documents, metadatas)]
+    return [
+        {
+            "text": text,
+            "page": metadata.get("page", "?"),
+            "paragraph": metadata.get("paragraph", "?"),
+        }
+        for text, metadata in zip(documents, metadatas)
+    ]
 
 
 def answer_with_openai(
@@ -82,7 +92,8 @@ def answer_with_openai(
         return None
 
     context = "\n\n".join(
-        f"[Page {source['page']}] {source['text']}" for source in sources[:5]
+        f"[Page {source['page']}, Paragraph {source['paragraph']}] {source['text']}"
+        for source in sources[:5]
     )
     word_limit = {"Concise": 120, "Balanced": 250, "Detailed": 450}[detail]
     prompt = (
@@ -91,7 +102,8 @@ def answer_with_openai(
         "and explain the practical meaning in plain language. Answer the question using "
         "only the supplied document excerpts. Be specific and answer the exact question "
         f"asked. Start with the direct answer, then add relevant supporting detail. Use at most {word_limit} "
-        "words and cite relevant page numbers in square brackets. Do not repeat the "
+        "words and cite relevant page and paragraph locations in square brackets, "
+        "such as [Page 4, Paragraph 2]. Do not repeat the "
         "question or discuss your process. "
         "If the excerpts do not contain the answer, say: 'The supplied PDF does not "
         "provide enough information to answer this.'\n\n"
@@ -122,7 +134,7 @@ def fallback_answer(sources: list[dict[str, Any]]) -> str:
     excerpt = source["text"][:600].rstrip()
     return (
         "OpenAI synthesis is unavailable. The most relevant passage is:\n\n"
-        f"**Page {source['page']}**\n{excerpt}"
+        f"**Page {source['page']}, Paragraph {source['paragraph']}**\n{excerpt}"
     )
 
 
@@ -172,5 +184,8 @@ if question:
             st.markdown(answer)
             with st.expander("Retrieved passages"):
                 for source in sources:
-                    st.markdown(f"**Page {source['page']}**\n\n{source['text']}")
+                    st.markdown(
+                        f"**Page {source['page']}, Paragraph {source['paragraph']}**\n\n"
+                        f"{source['text']}"
+                    )
     st.session_state.messages.append({"role": "assistant", "content": answer})

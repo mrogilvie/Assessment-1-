@@ -4,6 +4,9 @@ __pycache__/
 *$py.class
 .chroma/
 .streamlit/secrets.toml
+.env
+.env.*
+!.env.example
 
 # C extensions
 *.so
