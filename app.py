@@ -68,18 +68,30 @@ def answer_with_openai(question: str, sources: list[dict[str, Any]], model: str)
         return None
     from openai import OpenAI
 
-    context = "\n\n".join(f"[Page {source['page']}] {source['text']}" for source in sources)
+    context = "\n\n".join(
+        f"[Page {source['page']}] {source['text']}" for source in sources[:3]
+    )
     prompt = (
         "Answer the question using only the supplied document excerpts. "
-        "If the excerpts do not contain the answer, say so clearly. "
-        "Keep the response concise and cite page numbers in square brackets.\n\n"
+        "Be specific and answer the exact question asked. Start with the direct answer, "
+        "then add only essential detail. Use at most 120 words and cite relevant page "
+        "numbers in square brackets. Do not repeat the question or discuss your process. "
+        "If the excerpts do not contain the answer, say: 'The supplied PDF does not "
+        "provide enough information to answer this.'\n\n"
         f"EXCERPTS:\n{context}\n\nQUESTION: {question}"
     )
     response = OpenAI(api_key=api_key).chat.completions.create(
         model=model,
         temperature=0.1,
+        max_tokens=220,
         messages=[
-            {"role": "system", "content": "You are a careful legal-document assistant."},
+            {
+                "role": "system",
+                "content": (
+                    "You are a precise legal-document assistant. Summarize the supplied "
+                    "Residential Parks Bill notes without adding outside knowledge."
+                ),
+            },
             {"role": "user", "content": prompt},
         ],
     )
@@ -87,11 +99,13 @@ def answer_with_openai(question: str, sources: list[dict[str, Any]], model: str)
 
 
 def fallback_answer(sources: list[dict[str, Any]]) -> str:
+    if not sources:
+        return "No relevant passage was found in the PDF."
+    source = sources[0]
+    excerpt = source["text"][:600].rstrip()
     return (
-        "I found these relevant passages in the PDF. Add `OPENAI_API_KEY` to generate a "
-        "synthesized answer.\n\n" + "\n\n".join(
-            f"**Page {source['page']}**\n{source['text']}" for source in sources
-        )
+        "OpenAI synthesis is unavailable. The most relevant passage is:\n\n"
+        f"**Page {source['page']}**\n{excerpt}"
     )
 
 
