@@ -8,6 +8,7 @@ from typing import Any
 
 import chromadb
 import streamlit as st
+from openai import OpenAI
 from pypdf import PdfReader
 
 
@@ -15,6 +16,17 @@ ROOT = Path(__file__).parent
 DEFAULT_PDF = ROOT / "Clause-Notes-Residential-Parks-Bill-2026 copy.pdf"
 CHROMA_DIR = ROOT / ".chroma"
 COLLECTION_NAME = "residential-parks-bill"
+
+
+def get_openai_api_key() -> str | None:
+    """Read the key from the environment or Streamlit secrets."""
+    api_key = os.getenv("OPENAI_API_KEY")
+    if api_key:
+        return api_key
+    try:
+        return st.secrets.get("OPENAI_API_KEY")
+    except Exception:
+        return None
 
 
 def split_text(text: str) -> list[str]:
@@ -62,20 +74,25 @@ def retrieve(collection: Any, question: str, count: int) -> list[dict[str, Any]]
     return [{"text": text, "page": metadata.get("page", "?")} for text, metadata in zip(documents, metadatas)]
 
 
-def answer_with_openai(question: str, sources: list[dict[str, Any]], model: str) -> str | None:
-    api_key = os.getenv("OPENAI_API_KEY")
+def answer_with_openai(
+    question: str, sources: list[dict[str, Any]], model: str, detail: str
+) -> str | None:
+    api_key = get_openai_api_key()
     if not api_key:
         return None
-    from openai import OpenAI
 
     context = "\n\n".join(
-        f"[Page {source['page']}] {source['text']}" for source in sources[:3]
+        f"[Page {source['page']}] {source['text']}" for source in sources[:5]
     )
+    word_limit = {"Concise": 120, "Balanced": 250, "Detailed": 450}[detail]
     prompt = (
-        "Answer the question using only the supplied document excerpts. "
-        "Be specific and answer the exact question asked. Start with the direct answer, "
-        "then add only essential detail. Use at most 120 words and cite relevant page "
-        "numbers in square brackets. Do not repeat the question or discuss your process. "
+        "Summarize and synthesize the supplied document excerpts; do not copy them "
+        "or list them one after another. Combine overlapping points, remove repetition, "
+        "and explain the practical meaning in plain language. Answer the question using "
+        "only the supplied document excerpts. Be specific and answer the exact question "
+        f"asked. Start with the direct answer, then add relevant supporting detail. Use at most {word_limit} "
+        "words and cite relevant page numbers in square brackets. Do not repeat the "
+        "question or discuss your process. "
         "If the excerpts do not contain the answer, say: 'The supplied PDF does not "
         "provide enough information to answer this.'\n\n"
         f"EXCERPTS:\n{context}\n\nQUESTION: {question}"
@@ -83,7 +100,7 @@ def answer_with_openai(question: str, sources: list[dict[str, Any]], model: str)
     response = OpenAI(api_key=api_key).chat.completions.create(
         model=model,
         temperature=0.1,
-        max_tokens=220,
+        max_tokens=650 if detail == "Detailed" else 400,
         messages=[
             {
                 "role": "system",
@@ -116,8 +133,9 @@ st.caption("Ask questions about the supplied clause notes. Answers are grounded 
 with st.sidebar:
     st.header("Settings")
     retrieval_count = st.slider("Retrieved passages", min_value=1, max_value=6, value=4)
+    answer_detail = st.radio("Answer detail", ["Concise", "Balanced", "Detailed"], index=1)
     model = st.text_input("OpenAI model", value="gpt-4o-mini")
-    has_key = bool(os.getenv("OPENAI_API_KEY"))
+    has_key = bool(get_openai_api_key())
     st.info("LLM answers enabled." if has_key else "Retrieval-only mode. Set OPENAI_API_KEY for synthesized answers.")
 
 if not DEFAULT_PDF.exists():
@@ -148,7 +166,7 @@ if question:
     with st.chat_message("assistant"):
         with st.spinner("Searching the bill..."):
             try:
-                answer = answer_with_openai(question, sources, model) or fallback_answer(sources)
+                answer = answer_with_openai(question, sources, model, answer_detail) or fallback_answer(sources)
             except Exception as error:
                 answer = f"I could not generate the model response: {error}\n\n{fallback_answer(sources)}"
             st.markdown(answer)

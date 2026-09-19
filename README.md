@@ -20,5 +20,14 @@ export OPENAI_API_KEY="your-key"
 streamlit run app.py
 ```
 
+Alternatively, create `.streamlit/secrets.toml` locally and add:
+
+```toml
+OPENAI_API_KEY = "your-key"
+```
+
+Do not commit `secrets.toml` or share the key. Revoke any key that has been
+posted in chat, source code, screenshots, or GitHub.
+
 ChromaDB stores its local index in `.chroma/`. The supplied PDF is automatically
 re-indexed when its extracted chunk count changes.
