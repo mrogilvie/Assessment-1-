@@ -33,3 +33,6 @@ posted in chat, source code, screenshots, or GitHub.
 
 ChromaDB stores its local index in `.chroma/`. The supplied PDF is automatically
 re-indexed when its extracted chunk count changes.
+## LLM answers now enabled streamlit api key working
+
+## testing with questions and checking answers against the hard copy Clause Notes document (see powerpoint presentation)
