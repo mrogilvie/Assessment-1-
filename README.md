@@ -61,3 +61,7 @@ re-indexed when its extracted chunk count changes.
 ## lets get a logo onto the site - using chat gpt 5 to design an image of a duck with a bow on its bill
 
 ## lets use the duck bill logo as the question avatar
+
+## Google tells me Dracula is the coolest theme. Lets try that
+
+## hard to see the logo need to increse its size
