@@ -185,6 +185,7 @@ def fallback_answer(sources: list[dict[str, Any]]) -> str:
 
 
 st.set_page_config(page_title="Residential Parks Bill", page_icon="📄", layout="wide")
+st.logo(str(ROOT / "image.jpeg"), size="small")
 st.title("Residential Parks Bill assistant")
 st.caption("Ask questions about the supplied clause notes. Answers are grounded in the PDF.")
 init_rating_store()
