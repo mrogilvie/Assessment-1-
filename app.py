@@ -20,6 +20,7 @@ DEFAULT_PDF = ROOT / "Clause-Notes-Residential-Parks-Bill-2026 copy.pdf"
 CHROMA_DIR = ROOT / ".chroma"
 RATINGS_DB = ROOT / "ratings.sqlite3"
 COLLECTION_NAME = "residential-parks-bill"
+CHAT_AVATARS = {"user": "🦆", "assistant": "🎀"}
 
 load_dotenv(ROOT / ".env")
 
@@ -212,7 +213,7 @@ st.caption(f"Indexed {chunk_count} passages from `{DEFAULT_PDF.name}`")
 if "messages" not in st.session_state:
     st.session_state.messages = []
 for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
+    with st.chat_message(message["role"], avatar=CHAT_AVATARS[message["role"]]):
         st.markdown(message["content"])
         if message["role"] == "assistant" and message.get("response_id"):
             render_response_feedback(message["response_id"])
@@ -220,10 +221,10 @@ for message in st.session_state.messages:
 question = st.chat_input("Ask about a clause, obligation, or definition...")
 if question:
     st.session_state.messages.append({"role": "user", "content": question})
-    with st.chat_message("user"):
+    with st.chat_message("user", avatar=CHAT_AVATARS["user"]):
         st.markdown(question)
     sources = retrieve(collection, question, retrieval_count)
-    with st.chat_message("assistant"):
+    with st.chat_message("assistant", avatar=CHAT_AVATARS["assistant"]):
         with st.spinner("Searching the bill..."):
             try:
                 answer = answer_with_openai(question, sources, model, answer_detail) or fallback_answer(sources)
