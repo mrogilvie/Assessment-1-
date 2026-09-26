@@ -69,3 +69,6 @@ re-indexed when its extracted chunk count changes.
 ## more widgets - clear chat button?
 
 ## now Im trying to change the opening para to say what BillBow is about 
+## need to get my contact details on there somehow
+
+## download answer button too

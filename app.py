@@ -203,6 +203,8 @@ with st.sidebar:
     if st.button("Clear chat", use_container_width=True):
         st.session_state.pop("messages", None)
         st.rerun()
+    st.sidebar.markdown("---")
+    st.sidebar.info("Please get in touch\n\nMadeleine Ogilvie MP\n\nPh 0409001800")
 
 if not DEFAULT_PDF.exists():
     st.error(f"PDF not found: {DEFAULT_PDF.name}")
@@ -224,6 +226,13 @@ for message in st.session_state.messages:
         st.markdown(message["content"])
         if message["role"] == "assistant" and message.get("response_id"):
             render_response_feedback(message["response_id"])
+            st.download_button(
+                "Download answer",
+                data=message["content"],
+                file_name="billbow-answer.md",
+                mime="text/markdown",
+                key=f"download-{message['response_id']}",
+            )
 
 question = st.chat_input("Ask about a clause, obligation, or definition...")
 if question:
@@ -246,6 +255,13 @@ if question:
                     )
         response_id = uuid.uuid4().hex
         render_response_feedback(response_id)
+        st.download_button(
+            "Download answer",
+            data=answer,
+            file_name="billbow-answer.md",
+            mime="text/markdown",
+            key=f"download-{response_id}",
+        )
     st.session_state.messages.append(
         {"role": "assistant", "content": answer, "response_id": response_id}
     )
