@@ -59,3 +59,5 @@ re-indexed when its extracted chunk count changes.
 ## update the colours and background of the app via streamlit app themes
 
 ## lets get a logo onto the site - using chat gpt 5 to design an image of a duck with a bow on its bill
+
+## lets use the duck bill logo as the question avatar

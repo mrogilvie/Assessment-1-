@@ -20,7 +20,7 @@ DEFAULT_PDF = ROOT / "Clause-Notes-Residential-Parks-Bill-2026 copy.pdf"
 CHROMA_DIR = ROOT / ".chroma"
 RATINGS_DB = ROOT / "ratings.sqlite3"
 COLLECTION_NAME = "residential-parks-bill"
-CHAT_AVATARS = {"user": "🦆", "assistant": "🎀"}
+CHAT_AVATARS = {"user": str(ROOT / "image.jpeg"), "assistant": "🎀"}
 
 load_dotenv(ROOT / ".env")
 
