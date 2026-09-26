@@ -218,6 +218,11 @@ except Exception as error:
     st.error(f"Could not index the PDF: {error}")
     st.stop()
 
+st.write(
+    "BillBow provides AI generated Bill summaries. This service is intended to assist in "
+    "making complex Bills and Parliamentary Processes easier to follow. It is not a "
+    "replacement for legal advice."
+)
 st.caption(f"Indexed {chunk_count} passages from `{DEFAULT_PDF.name}`")
 
 if "messages" not in st.session_state:
