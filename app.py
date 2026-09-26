@@ -190,7 +190,7 @@ st.title("Residential Parks Bill assistant")
 _, logo_column, _ = st.columns([1, 2, 1])
 with logo_column:
     st.image(str(ROOT / "image.jpeg"), width=180)
-st.caption("Ask questions about the supplied clause notes. Answers are grounded in the PDF.")
+st.caption("BillBow helps you engage with your democracy. BillBow is an AI driven tool that provides plain English answers to your questions about Bills before the Parliament of Tasmania.")
 init_rating_store()
 
 with st.sidebar:

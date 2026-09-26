@@ -67,3 +67,5 @@ re-indexed when its extracted chunk count changes.
 ## hard to see the logo need to increse its size
 
 ## more widgets - clear chat button?
+
+## now Im trying to change the opening para to say what BillBow is about 
