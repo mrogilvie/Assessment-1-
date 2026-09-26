@@ -186,10 +186,11 @@ def fallback_answer(sources: list[dict[str, Any]]) -> str:
 
 st.set_page_config(page_title="Residential Parks Bill", page_icon="📄", layout="wide")
 st.logo(str(ROOT / "image.jpeg"), size="large")
-st.title("Residential Parks Bill assistant")
+st.title("BillBow - Making BIlls Accessible")
 _, logo_column, _ = st.columns([1, 2, 1])
 with logo_column:
     st.image(str(ROOT / "image.jpeg"), width=180)
+st.header("Residential Parks Bill - Assistant")
 st.caption("BillBow helps you engage with your democracy. BillBow is an AI driven tool that provides plain English answers to your questions about Bills before the Parliament of Tasmania.")
 init_rating_store()
 

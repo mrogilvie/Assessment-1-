@@ -72,3 +72,5 @@ re-indexed when its extracted chunk count changes.
 ## need to get my contact details on there somehow
 
 ## download answer button too
+
+## update format and make it flow more logically
