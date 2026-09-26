@@ -51,3 +51,7 @@ re-indexed when its extracted chunk count changes.
 ## would be helpful to have somem sort of user rating system so the app can be improved over time
 
 ## adding widget streamlit 1.64.0, attaching stable ID and thumbs widget, ran python -m py_compile
+
+## lets add some personality and colour
+
+## can i change the avatars? 🦆
