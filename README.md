@@ -1,4 +1,4 @@
-# Residential Parks Bill chatbot
+# Residential Parks Bill chatbot - url is Billbow.streamlit.app
 
 A Streamlit RAG chatbot that indexes the supplied PDF with ChromaDB and retrieves
 the most relevant passages for each question.
