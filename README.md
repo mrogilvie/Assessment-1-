@@ -3,6 +3,8 @@
 A Streamlit RAG chatbot that indexes the supplied PDF with ChromaDB and retrieves
 the most relevant passages for each question.
 
+## Utilise the copilot AI chatbot to assist to build
+
 ## Run locally
 
 ```bash
