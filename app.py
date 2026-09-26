@@ -3,6 +3,8 @@ from __future__ import annotations
 import hashlib
 import os
 import re
+import sqlite3
+import uuid
 from pathlib import Path
 from typing import Any
 
@@ -16,6 +18,7 @@ from pypdf import PdfReader
 ROOT = Path(__file__).parent
 DEFAULT_PDF = ROOT / "Clause-Notes-Residential-Parks-Bill-2026 copy.pdf"
 CHROMA_DIR = ROOT / ".chroma"
+RATINGS_DB = ROOT / "ratings.sqlite3"
 COLLECTION_NAME = "residential-parks-bill"
 
 load_dotenv(ROOT / ".env")
@@ -30,6 +33,48 @@ def get_openai_api_key() -> str | None:
         return st.secrets.get("OPENAI_API_KEY")
     except Exception:
         return None
+
+
+def init_rating_store() -> None:
+    with sqlite3.connect(RATINGS_DB) as connection:
+        connection.execute(
+            """CREATE TABLE IF NOT EXISTS ratings (
+                response_id TEXT PRIMARY KEY,
+                rating INTEGER NOT NULL CHECK (rating IN (0, 1)),
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )"""
+        )
+
+
+def save_rating(response_id: str, rating: int) -> None:
+    with sqlite3.connect(RATINGS_DB) as connection:
+        connection.execute(
+            """INSERT INTO ratings (response_id, rating) VALUES (?, ?)
+            ON CONFLICT(response_id) DO UPDATE SET
+                rating = excluded.rating,
+                created_at = CURRENT_TIMESTAMP""",
+            (response_id, rating),
+        )
+
+
+def get_saved_rating(response_id: str) -> int | None:
+    with sqlite3.connect(RATINGS_DB) as connection:
+        row = connection.execute(
+            "SELECT rating FROM ratings WHERE response_id = ?", (response_id,)
+        ).fetchone()
+    return row[0] if row else None
+
+
+def get_rating_counts() -> tuple[int, int]:
+    with sqlite3.connect(RATINGS_DB) as connection:
+        counts = dict(connection.execute("SELECT rating, COUNT(*) FROM ratings GROUP BY rating"))
+    return counts.get(1, 0), counts.get(0, 0)
+
+
+def render_response_feedback(response_id: str) -> None:
+    rating = st.feedback("thumbs", key=f"rating-{response_id}")
+    if rating is not None and get_saved_rating(response_id) != rating:
+        save_rating(response_id, rating)
 
 
 def split_text(text: str) -> list[str]:
@@ -141,6 +186,7 @@ def fallback_answer(sources: list[dict[str, Any]]) -> str:
 st.set_page_config(page_title="Residential Parks Bill", page_icon="📄", layout="wide")
 st.title("Residential Parks Bill assistant")
 st.caption("Ask questions about the supplied clause notes. Answers are grounded in the PDF.")
+init_rating_store()
 
 with st.sidebar:
     st.header("Settings")
@@ -168,6 +214,8 @@ if "messages" not in st.session_state:
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
+        if message["role"] == "assistant" and message.get("response_id"):
+            render_response_feedback(message["response_id"])
 
 question = st.chat_input("Ask about a clause, obligation, or definition...")
 if question:
@@ -188,4 +236,11 @@ if question:
                         f"**Page {source['page']}, Paragraph {source['paragraph']}**\n\n"
                         f"{source['text']}"
                     )
-    st.session_state.messages.append({"role": "assistant", "content": answer})
+        response_id = uuid.uuid4().hex
+        render_response_feedback(response_id)
+    st.session_state.messages.append(
+        {"role": "assistant", "content": answer, "response_id": response_id}
+    )
+
+positive_ratings, negative_ratings = get_rating_counts()
+st.caption(f"Answer ratings: {positive_ratings} thumbs up, {negative_ratings} thumbs down")

@@ -3,6 +3,7 @@ __pycache__/
 *.py[codz]
 *$py.class
 .chroma/
+ratings.sqlite3
 .streamlit/secrets.toml
 .env
 .env.*

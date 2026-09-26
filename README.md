@@ -31,8 +31,23 @@ OPENAI_API_KEY = "your-key"
 Do not commit `secrets.toml` or share the key. Revoke any key that has been
 posted in chat, source code, screenshots, or GitHub.
 
+## Answer ratings
+
+Each assistant answer has thumbs-up and thumbs-down controls. Ratings are saved
+locally in `ratings.sqlite3`, one vote per answer; a user can change their vote.
+Aggregate vote totals appear below the chat input.
+Only the rating and timestamp are stored, not the question, answer, or user
+identity. The database is ignored by Git. For a multi-instance deployment, use a
+shared database instead of a local SQLite file.
+
 ChromaDB stores its local index in `.chroma/`. The supplied PDF is automatically
 re-indexed when its extracted chunk count changes.
 ## LLM answers now enabled streamlit api key working
 
-## testing with questions and checking answers against the hard copy Clause Notes document (see powerpoint presentation)
+## testing with questions and checking answers against the hard copy Clause Notes document (see powerpoint presentation). Questions being tested are "Are there penalties?, "which clauses contain penalties?" and "how many clauses are there in the bill?". 
+
+## noting when using the GitHUB side bar chatbot to direct code it appears in appy.py but does not update Readme file
+
+## would be helpful to have somem sort of user rating system so the app can be improved over time
+
+## adding widget streamlit 1.64.0, attaching stable ID and thumbs widget, ran python -m py_compile
