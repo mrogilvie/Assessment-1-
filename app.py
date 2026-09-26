@@ -187,6 +187,7 @@ def fallback_answer(sources: list[dict[str, Any]]) -> str:
 st.set_page_config(page_title="Residential Parks Bill", page_icon="📄", layout="wide")
 st.logo(str(ROOT / "image.jpeg"), size="large")
 st.title("Residential Parks Bill assistant")
+st.image(str(ROOT / "image.jpeg"), width=360)
 st.caption("Ask questions about the supplied clause notes. Answers are grounded in the PDF.")
 init_rating_store()
 
@@ -197,6 +198,9 @@ with st.sidebar:
     model = st.text_input("OpenAI model", value="gpt-4o-mini")
     has_key = bool(get_openai_api_key())
     st.info("LLM answers enabled." if has_key else "Retrieval-only mode. Set OPENAI_API_KEY for synthesized answers.")
+    if st.button("Clear chat", use_container_width=True):
+        st.session_state.pop("messages", None)
+        st.rerun()
 
 if not DEFAULT_PDF.exists():
     st.error(f"PDF not found: {DEFAULT_PDF.name}")

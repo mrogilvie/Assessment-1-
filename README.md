@@ -65,3 +65,5 @@ re-indexed when its extracted chunk count changes.
 ## Google tells me Dracula is the coolest theme. Lets try that
 
 ## hard to see the logo need to increse its size
+
+## more widgets - clear chat button?
