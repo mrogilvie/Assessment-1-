@@ -1,4 +1,4 @@
-# Residential Parks Bill chatbot - url is Billbow.streamlit.app
+# Residential Parks Bill chatbot - url is https://Billbow.streamlit.app
 
 A Streamlit RAG chatbot that indexes the supplied PDF with ChromaDB and retrieves
 the most relevant passages for each question.
@@ -74,3 +74,5 @@ re-indexed when its extracted chunk count changes.
 ## download answer button too
 
 ## update format and make it flow more logically
+
+# Check:code is in public repository - yes, Stoneman-mls added as collaborator, code repository includes the ReadMe file, code repository includes artefacts, URL added to this ReadMe file
