@@ -78,6 +78,22 @@ def render_response_feedback(response_id: str) -> None:
         save_rating(response_id, rating)
 
 
+def render_source_navigation(response_id: str, sources: list[dict[str, Any]]) -> None:
+    if not sources:
+        return
+    selected_index = st.selectbox(
+        "Jump to source",
+        options=range(len(sources)),
+        format_func=lambda index: (
+            f"Page {sources[index]['page']}, Paragraph {sources[index]['paragraph']}"
+        ),
+        key=f"source-{response_id}",
+    )
+    source = sources[selected_index]
+    st.markdown(f"**Page {source['page']}, Paragraph {source['paragraph']}**")
+    st.write(source["text"])
+
+
 def split_text(text: str) -> list[str]:
     """Normalize extracted text and return one retrieval chunk per paragraph."""
     paragraphs = re.split(r"\n\s*\n", text)
@@ -184,14 +200,14 @@ def fallback_answer(sources: list[dict[str, Any]]) -> str:
     )
 
 
-st.set_page_config(page_title="Residential Parks Bill", page_icon="📄", layout="wide")
+st.set_page_config(page_title="Residential Parks Bill 2026 (Tas)", page_icon="📄", layout="wide")
 st.logo(str(ROOT / "image.jpeg"), size="large")
 st.title("BillBow - Making BIlls Accessible")
 _, logo_column, _ = st.columns([1, 2, 1])
 with logo_column:
     st.image(str(ROOT / "image.jpeg"), width=180)
-st.header("Residential Parks Bill - Assistant")
-st.caption("BillBow helps you engage with your democracy. BillBow is an AI driven tool that provides plain English answers to your questions about Bills before the Parliament of Tasmania.")
+st.header("Residential Parks Bill 2026 (Tas) - Assistant")
+st.caption("**BillBow helps you engage with your democracy.** **BillBow is an AI driven tool that provides plain English answers to your questions about Bills before the Parliament of Tasmania.**")
 init_rating_store()
 
 with st.sidebar:
@@ -231,6 +247,7 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"], avatar=CHAT_AVATARS[message["role"]]):
         st.markdown(message["content"])
         if message["role"] == "assistant" and message.get("response_id"):
+            render_source_navigation(message["response_id"], message.get("sources", []))
             render_response_feedback(message["response_id"])
             st.download_button(
                 "Download answer",
@@ -246,6 +263,7 @@ if question:
     with st.chat_message("user", avatar=CHAT_AVATARS["user"]):
         st.markdown(question)
     sources = retrieve(collection, question, retrieval_count)
+    response_id = uuid.uuid4().hex
     with st.chat_message("assistant", avatar=CHAT_AVATARS["assistant"]):
         with st.spinner("Searching the bill..."):
             try:
@@ -253,13 +271,7 @@ if question:
             except Exception as error:
                 answer = f"I could not generate the model response: {error}\n\n{fallback_answer(sources)}"
             st.markdown(answer)
-            with st.expander("Retrieved passages"):
-                for source in sources:
-                    st.markdown(
-                        f"**Page {source['page']}, Paragraph {source['paragraph']}**\n\n"
-                        f"{source['text']}"
-                    )
-        response_id = uuid.uuid4().hex
+            render_source_navigation(response_id, sources)
         render_response_feedback(response_id)
         st.download_button(
             "Download answer",
@@ -269,7 +281,12 @@ if question:
             key=f"download-{response_id}",
         )
     st.session_state.messages.append(
-        {"role": "assistant", "content": answer, "response_id": response_id}
+        {
+            "role": "assistant",
+            "content": answer,
+            "response_id": response_id,
+            "sources": sources,
+        }
     )
 
 positive_ratings, negative_ratings = get_rating_counts()
