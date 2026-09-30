@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+from io import BytesIO
 import os
 import re
 import sqlite3
@@ -12,7 +13,7 @@ import chromadb
 import streamlit as st
 from dotenv import load_dotenv
 from openai import OpenAI
-from pypdf import PdfReader
+from pypdf import PdfReader, PdfWriter
 
 
 ROOT = Path(__file__).parent
@@ -127,6 +128,12 @@ def render_source_navigation(response_id: str, sources: list[dict[str, Any]]) ->
     source = sources[selected_index]
     st.markdown(f"**Page {source['page']}, Paragraph {source['paragraph']}**")
     st.write(source["text"])
+    with st.expander(f"Open page {source['page']} in the original PDF"):
+        st.pdf(
+            extract_pdf_page(DEFAULT_PDF, int(source["page"])),
+            height=650,
+            key=f"pdf-source-{response_id}-{source['page']}",
+        )
 
 
 def split_text(text: str) -> list[str]:
@@ -144,6 +151,15 @@ def read_pdf(pdf_path: Path) -> tuple[list[str], list[dict[str, Any]]]:
             chunks.append(paragraph)
             metadata.append({"page": page_number, "paragraph": paragraph_number})
     return chunks, metadata
+
+
+def extract_pdf_page(pdf_path: Path, page_number: int) -> bytes:
+    reader = PdfReader(str(pdf_path))
+    writer = PdfWriter()
+    writer.add_page(reader.pages[page_number - 1])
+    output = BytesIO()
+    writer.write(output)
+    return output.getvalue()
 
 
 @st.cache_resource(show_spinner=False)
