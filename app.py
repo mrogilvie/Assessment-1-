@@ -292,7 +292,22 @@ for message in st.session_state.messages:
                 key=f"download-{message['response_id']}",
             )
 
-question = st.chat_input("Ask about a clause, obligation, or definition...")
+selected_question = None
+if not st.session_state.messages:
+    st.caption("Suggested questions")
+    suggested_questions = [
+        "Are there penalties?",
+        "Which clauses contain penalties?",
+        "How many clauses are there in the bill?",
+    ]
+    columns = st.columns(len(suggested_questions))
+    for index, (column, suggestion) in enumerate(zip(columns, suggested_questions)):
+        with column:
+            if st.button(suggestion, key=f"suggested-question-{index}", use_container_width=True):
+                selected_question = suggestion
+
+typed_question = st.chat_input("Ask about a clause, obligation, or definition...")
+question = typed_question or selected_question
 if question:
     st.session_state.messages.append({"role": "user", "content": question})
     with st.chat_message("user", avatar=CHAT_AVATARS["user"]):
