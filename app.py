@@ -292,6 +292,19 @@ st.markdown(
 )
 st.caption(f"Indexed {chunk_count} passages from `{DEFAULT_PDF.name}`")
 
+with st.expander("How a bill becomes law"):
+    st.markdown(
+        """
+        1. **Introduction:** A bill is presented to Parliament as a proposal for a new law or a change to existing law.
+        2. **Debate and changes:** Members debate the proposal, examine its details, and may suggest amendments.
+        3. **Both chambers consider it:** In Tasmania, the House of Assembly and Legislative Council consider the bill. They must agree on the same text before it can proceed.
+        4. **Royal Assent:** The Governor may grant Royal Assent. The bill then becomes an Act.
+        5. **Commencement:** The Act's own provisions say when it starts, which may be on assent, on a specified date, or on a date set by proclamation.
+
+        A parliamentary committee may invite public submissions if a bill is referred to it; this does not happen for every bill.
+        """
+    )
+
 if "messages" not in st.session_state:
     st.session_state.messages = []
 for message in st.session_state.messages:

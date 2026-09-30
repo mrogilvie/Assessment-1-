@@ -82,3 +82,4 @@ re-indexed when its extracted chunk count changes.
 ## fix formatting
 ## add suggested questions buttons for the 3 test questions
 ## can I show the pdf on the screen as original document?
+## explain the process better
