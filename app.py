@@ -20,6 +20,7 @@ from pypdf import PdfReader, PdfWriter
 ROOT = Path(__file__).parent
 DEFAULT_PDF = ROOT / "Clause-Notes-Residential-Parks-Bill-2026 copy.pdf"
 DING_AUDIO = (ROOT / "ding.wav").read_bytes()
+JINGLE_AUDIO = (ROOT / "billbow-jingle.wav").read_bytes()
 CHROMA_DIR = ROOT / ".chroma"
 RATINGS_DB = ROOT / "ratings.sqlite3"
 COLLECTION_NAME = "residential-parks-bill"
@@ -332,6 +333,42 @@ with st.sidebar:
         </style>
         <div class="duck-tagline">get your ducks in a row</div>
         """
+    )
+    jingle_data = base64.b64encode(JINGLE_AUDIO).decode("ascii")
+    st.html(
+        f"""
+        <style>
+        .billbow-jingle-button {{
+            align-items: center;
+            background: transparent;
+            border: 1px solid #1E5AA8;
+            border-radius: 4px;
+            color: #1E5AA8;
+            cursor: pointer;
+            display: inline-flex;
+            font: inherit;
+            gap: 0.4rem;
+            padding: 0.35rem 0.55rem;
+        }}
+        .billbow-jingle-button:hover {{ background: #EAE2D3; }}
+        .billbow-jingle-button:focus-visible {{ outline: 2px solid #D00075; outline-offset: 2px; }}
+        </style>
+        <button class="billbow-jingle-button" id="billbow-jingle-play" type="button" aria-label="Play BillBow jingle">
+            <span aria-hidden="true">&#9654;</span> Play BillBow jingle
+        </button>
+        <audio id="billbow-jingle-audio" preload="none" style="display:none">
+            <source src="data:audio/wav;base64,{jingle_data}" type="audio/wav">
+        </audio>
+        <script>
+        const jingleButton = document.getElementById("billbow-jingle-play");
+        const jingleAudio = document.getElementById("billbow-jingle-audio");
+        jingleButton.addEventListener("click", () => {{
+            jingleAudio.currentTime = 0;
+            jingleAudio.play().catch(() => {{}});
+        }});
+        </script>
+        """,
+        unsafe_allow_javascript=True,
     )
     st.header("Settings")
     retrieval_count = st.slider("Retrieved passages", min_value=1, max_value=6, value=4)
