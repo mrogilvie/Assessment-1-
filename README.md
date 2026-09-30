@@ -83,3 +83,9 @@ re-indexed when its extracted chunk count changes.
 ## add suggested questions buttons for the 3 test questions
 ## can I show the pdf on the screen as original document?
 ## explain the process better
+## link to live debates on bills
+## improve font readibility
+## add tagline and improve colours
+## can i animate?
+# how about a jingle?
+# tried a synthetic quack sound and it was terrible 

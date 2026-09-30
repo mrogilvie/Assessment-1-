@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import hashlib
 from io import BytesIO
 import os
@@ -18,9 +19,11 @@ from pypdf import PdfReader, PdfWriter
 
 ROOT = Path(__file__).parent
 DEFAULT_PDF = ROOT / "Clause-Notes-Residential-Parks-Bill-2026 copy.pdf"
+DING_AUDIO = (ROOT / "ding.wav").read_bytes()
 CHROMA_DIR = ROOT / ".chroma"
 RATINGS_DB = ROOT / "ratings.sqlite3"
 COLLECTION_NAME = "residential-parks-bill"
+LOGO_BYTES = (ROOT / "image.jpeg").read_bytes()
 CHAT_AVATARS = {"user": str(ROOT / "image.jpeg"), "assistant": "🎀"}
 
 load_dotenv(ROOT / ".env")
@@ -252,16 +255,84 @@ def fallback_answer(sources: list[dict[str, Any]]) -> str:
 
 
 st.set_page_config(page_title="Residential Parks Bill 2026 (Tas)", page_icon="📄", layout="wide")
-st.logo(str(ROOT / "image.jpeg"), size="large")
-st.title("BillBow - Making BIlls Accessible")
+st.logo(LOGO_BYTES, size="large")
+st.title("BillBow - Making Bills Accessible")
 _, logo_column, _ = st.columns([1, 2, 1])
 with logo_column:
-    st.image(str(ROOT / "image.jpeg"), width=180)
+    st.image(LOGO_BYTES, width=180)
 st.header("Residential Parks Bill 2026 (Tas) - Assistant")
 st.markdown("**BillBow helps you engage with your democracy.** **BillBow is an AI driven tool that provides plain English answers to your questions about Bills before the Parliament of Tasmania.**")
 init_rating_store()
 
 with st.sidebar:
+    logo_data = base64.b64encode(LOGO_BYTES).decode("ascii")
+    st.html(
+        f"""
+        <div style="display: flex; justify-content: center;">
+            <img src="data:image/jpeg;base64,{logo_data}" alt="BillBow duck logo"
+                 style="width: 130px; max-width: 100%; height: auto;">
+        </div>
+        """
+    )
+    duck_sprite = base64.b64encode((ROOT / "walking-duck-sprites.png").read_bytes()).decode("ascii")
+    st.html(
+        f"""
+        <style>
+        .duck-walk-track {{
+            height: 106px;
+            overflow: hidden;
+            position: relative;
+            width: 100%;
+        }}
+        .duck-walker {{
+            animation: duck-cross 14s linear infinite, duck-steps 0.72s steps(8, end) infinite;
+            background-image: url("data:image/png;base64,{duck_sprite}");
+            background-position: 0 0;
+            background-repeat: no-repeat;
+            background-size: 800% 100%;
+            bottom: 0;
+            height: 100px;
+            left: -84px;
+            position: absolute;
+            width: 84px;
+        }}
+        @keyframes duck-cross {{
+            from {{ left: -84px; }}
+            to {{ left: calc(100% + 84px); }}
+        }}
+        @keyframes duck-steps {{
+            from {{ background-position: 0 0; }}
+            to {{ background-position: 100% 0; }}
+        }}
+        @media (prefers-reduced-motion: reduce) {{
+            .duck-walker {{
+                animation: none;
+                background-position: 100% 0;
+                left: calc(50% - 42px);
+            }}
+        }}
+        </style>
+        <div class="duck-walk-track">
+            <div class="duck-walker" role="img" aria-label="Cartoon duck walking across the sidebar"></div>
+        </div>
+        """
+    )
+    st.html(
+        """
+        <style>
+        @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&display=swap');
+        .duck-tagline {
+            color: #D00075;
+            font-family: 'Caveat', cursive;
+            font-size: 1.95rem;
+            font-weight: 600;
+            line-height: 1.1;
+            margin: 0 0 0.75rem;
+        }
+        </style>
+        <div class="duck-tagline">get your ducks in a row</div>
+        """
+    )
     st.header("Settings")
     retrieval_count = st.slider("Retrieved passages", min_value=1, max_value=6, value=4)
     answer_detail = st.radio("Answer detail", ["Concise", "Balanced", "Detailed"], index=1)
@@ -363,6 +434,13 @@ if question:
                 answer = f"I could not generate the model response: {error}\n\n{fallback_answer(sources)}"
             st.markdown(answer)
             render_source_navigation(response_id, sources)
+        ding_data = base64.b64encode(DING_AUDIO).decode("ascii")
+        st.html(
+            f'<audio autoplay preload="auto" aria-hidden="true" style="display:none">'
+            f'<source src="data:audio/wav;base64,{ding_data}" type="audio/wav">'
+            "</audio>",
+            width=1,
+        )
         render_response_feedback(response_id)
         st.download_button(
             "Download answer",

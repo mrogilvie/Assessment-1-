@@ -6,7 +6,8 @@ base = "light"
 primaryColor = "#BD93F9"
 backgroundColor = "#F5F0E6"
 secondaryBackgroundColor = "#EAE2D3"
-textColor = "#292820"
+textColor = "#1E5AA8"
+font = "IBM Plex Sans:https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap, sans-serif"
 
 [browser]
 gatherUsageStats = false
