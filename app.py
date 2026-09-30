@@ -305,6 +305,18 @@ with st.expander("How a bill becomes law"):
         """
     )
 
+with st.expander("Current Bills"):
+    st.markdown(
+        "Browse bills currently before the Tasmanian Parliament: "
+        "[View current Bills](https://www.parliament.tas.gov.au/bills)."
+    )
+
+with st.expander("Live Votes and Proceedings"):
+    st.markdown(
+        "Watch the Parliament of Tasmania's live votes and proceedings broadcast: "
+        "[Watch live](https://www.parliament.tas.gov.au/house-of-assembly/live-votes-and-proceedings)."
+    )
+
 if "messages" not in st.session_state:
     st.session_state.messages = []
 for message in st.session_state.messages:
