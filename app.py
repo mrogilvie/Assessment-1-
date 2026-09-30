@@ -42,9 +42,13 @@ def init_rating_store() -> None:
             """CREATE TABLE IF NOT EXISTS ratings (
                 response_id TEXT PRIMARY KEY,
                 rating INTEGER NOT NULL CHECK (rating IN (0, 1)),
-                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                feedback TEXT
             )"""
         )
+        columns = {row[1] for row in connection.execute("PRAGMA table_info(ratings)")}
+        if "feedback" not in columns:
+            connection.execute("ALTER TABLE ratings ADD COLUMN feedback TEXT")
 
 
 def save_rating(response_id: str, rating: int) -> None:
@@ -66,6 +70,22 @@ def get_saved_rating(response_id: str) -> int | None:
     return row[0] if row else None
 
 
+def save_feedback(response_id: str, feedback: str) -> None:
+    with sqlite3.connect(RATINGS_DB) as connection:
+        connection.execute(
+            "UPDATE ratings SET feedback = ? WHERE response_id = ? AND rating = 0",
+            (feedback.strip(), response_id),
+        )
+
+
+def get_saved_feedback(response_id: str) -> str | None:
+    with sqlite3.connect(RATINGS_DB) as connection:
+        row = connection.execute(
+            "SELECT feedback FROM ratings WHERE response_id = ?", (response_id,)
+        ).fetchone()
+    return row[0] if row and row[0] else None
+
+
 def get_rating_counts() -> tuple[int, int]:
     with sqlite3.connect(RATINGS_DB) as connection:
         counts = dict(connection.execute("SELECT rating, COUNT(*) FROM ratings GROUP BY rating"))
@@ -76,6 +96,21 @@ def render_response_feedback(response_id: str) -> None:
     rating = st.feedback("thumbs", key=f"rating-{response_id}")
     if rating is not None and get_saved_rating(response_id) != rating:
         save_rating(response_id, rating)
+    if rating == 0:
+        with st.form(key=f"written-feedback-{response_id}"):
+            feedback = st.text_area(
+                "Optional feedback (please don't include personal information)",
+                max_chars=1000,
+                key=f"feedback-{response_id}",
+            )
+            submitted = st.form_submit_button("Submit feedback")
+        if submitted and feedback.strip():
+            save_feedback(response_id, feedback)
+            st.success("Thanks, your feedback was saved.")
+        elif submitted:
+            st.info("No written feedback added.")
+        elif get_saved_feedback(response_id):
+            st.caption("Written feedback saved.")
 
 
 def render_source_navigation(response_id: str, sources: list[dict[str, Any]]) -> None:
@@ -207,7 +242,7 @@ _, logo_column, _ = st.columns([1, 2, 1])
 with logo_column:
     st.image(str(ROOT / "image.jpeg"), width=180)
 st.header("Residential Parks Bill 2026 (Tas) - Assistant")
-st.caption("**BillBow helps you engage with your democracy.** **BillBow is an AI driven tool that provides plain English answers to your questions about Bills before the Parliament of Tasmania.**")
+st.markdown("**BillBow helps you engage with your democracy.** **BillBow is an AI driven tool that provides plain English answers to your questions about Bills before the Parliament of Tasmania.**")
 init_rating_store()
 
 with st.sidebar:
@@ -234,7 +269,7 @@ except Exception as error:
     st.error(f"Could not index the PDF: {error}")
     st.stop()
 
-st.write(
+st.markdown(
     "BillBow provides AI generated Bill summaries. This service is intended to assist in "
     "making complex Bills and Parliamentary Processes easier to follow. It is not a "
     "replacement for legal advice."
